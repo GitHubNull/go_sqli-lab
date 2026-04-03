@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go SQLi Lab - SQL注入学习平台</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Go SQLi Lab</h1>
+        <p style="text-align: center; color: #888; margin-bottom: 30px;">
+            基于Go语言实现的SQL注入学习平台 | 参考sqli-labs项目
+        </p>
+
+        <div class="section">
+            <h2>📚 基础挑战 (Less-1 ~ Less-10)</h2>
+            <div class="nav-links">
+                <a href="/less/less-1?id=1" class="category-error">Less-1: Error Based - String</a>
+                <a href="/less/less-2?id=1" class="category-error">Less-2: Error Based - Integer</a>
+                <a href="/less/less-3?id=1" class="category-error">Less-3: Error Based - String (twist)</a>
+                <a href="/less/less-4?id=1" class="category-error">Less-4: Error Based - Double Quotes</a>
+                <a href="/less/less-5?id=1" class="category-error">Less-5: Double Query - Single Quotes</a>
+                <a href="/less/less-6?id=1" class="category-error">Less-6: Double Query - Double Quotes</a>
+                <a href="/less/less-7?id=1" class="category-error">Less-7: Dump into outfile</a>
+                <a href="/less/less-8?id=1" class="category-blind">Less-8: Blind - Boolean</a>
+                <a href="/less/less-9?id=1" class="category-blind">Less-9: Blind - Time Based</a>
+                <a href="/less/less-10?id=1" class="category-blind">Less-10: Blind - Time Based - Double Quotes</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 POST注入 (Less-11 ~ Less-22)</h2>
+            <div class="nav-links">
+                <a href="/less/less-11" class="category-post">Less-11: POST - Error Based - String</a>
+                <a href="/less/less-12" class="category-post">Less-12: POST - Error Based - Double Quotes</a>
+                <a href="/less/less-13" class="category-post">Less-13: POST - Double Injection</a>
+                <a href="/less/less-14" class="category-post">Less-14: POST - Double Injection - Double Quotes</a>
+                <a href="/less/less-15" class="category-post">Less-15: POST - Blind Based</a>
+                <a href="/less/less-16" class="category-post">Less-16: POST - Blind - Double Quotes</a>
+                <a href="/less/less-17" class="category-post">Less-17: POST - Update Query</a>
+                <a href="/less/less-18" class="category-header">Less-18: Header - User-Agent</a>
+                <a href="/less/less-19" class="category-header">Less-19: Header - Referer</a>
+                <a href="/less/less-20" class="category-header">Less-20: Cookie Injection</a>
+                <a href="/less/less-21" class="category-header">Less-21: Cookie - Base64</a>
+                <a href="/less/less-22" class="category-header">Less-22: Cookie - Base64 - Double Quotes</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🛡️ WAF绕过 (Less-23 ~ Less-37)</h2>
+            <div class="nav-links">
+                <a href="/less/less-23?id=1" class="category-waf">Less-23: Comments Bypass</a>
+                <a href="/less/less-24" class="category-waf">Less-24: Second Order Injection</a>
+                <a href="/less/less-25?id=1" class="category-waf">Less-25: OR & AND Bypass</a>
+                <a href="/less/less-26?id=1" class="category-waf">Less-26: Spaces & Comments</a>
+                <a href="/less/less-27?id=1" class="category-waf">Less-27: UNION & SELECT</a>
+                <a href="/less/less-28?id=1" class="category-waf">Less-28: Impedance Mismatch</a>
+                <a href="/less/less-29?id=1" class="category-waf">Less-29: WAF Bypass 1</a>
+                <a href="/less/less-30?id=1" class="category-waf">Less-30: WAF Bypass 2</a>
+                <a href="/less/less-31?id=1" class="category-waf">Less-31: WAF Bypass 3</a>
+                <a href="/less/less-32?id=1" class="category-waf">Less-32: Wide Char</a>
+                <a href="/less/less-33?id=1" class="category-waf">Less-33: UTF-8</a>
+                <a href="/less/less-34" class="category-waf">Less-34: POST Bypass</a>
+                <a href="/less/less-35?id=1" class="category-waf">Less-35: Integer Bypass</a>
+                <a href="/less/less-36?id=1" class="category-waf">Less-36: Real Escape String</a>
+                <a href="/less/less-37" class="category-waf">Less-37: POST Real Escape</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 堆叠注入 (Less-38 ~ Less-53)</h2>
+            <div class="nav-links">
+                <a href="/less/less-38?id=1" class="category-stacked">Less-38: Stacked Query</a>
+                <a href="/less/less-39?id=1" class="category-stacked">Less-39: Stacked - Integer</a>
+                <a href="/less/less-40?id=1" class="category-stacked">Less-40: Stacked - Blind</a>
+                <a href="/less/less-41?id=1" class="category-stacked">Less-41: Stacked - Int Blind</a>
+                <a href="/less/less-42" class="category-stacked">Less-42: POST Stacked</a>
+                <a href="/less/less-43" class="category-stacked">Less-43: POST Stacked - Int</a>
+                <a href="/less/less-44" class="category-stacked">Less-44: POST Error Based</a>
+                <a href="/less/less-45" class="category-stacked">Less-45: POST Blind</a>
+                <a href="/less/less-46?id=1" class="category-stacked">Less-46: ORDER BY</a>
+                <a href="/less/less-47?id=1" class="category-stacked">Less-47: ORDER BY Blind</a>
+                <a href="/less/less-48?id=1" class="category-stacked">Less-48: ORDER BY Error</a>
+                <a href="/less/less-49?id=1" class="category-stacked">Less-49: ORDER BY Blind 2</a>
+                <a href="/less/less-50?id=1" class="category-stacked">Less-50: ORDER BY Integer</a>
+                <a href="/less/less-51?id=1" class="category-stacked">Less-51: ORDER BY String</a>
+                <a href="/less/less-52?id=1" class="category-stacked">Less-52: ORDER BY Stacked</a>
+                <a href="/less/less-53?id=1" class="category-stacked">Less-53: LIMIT Clause</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏆 挑战关卡 (Less-54 ~ Less-65)</h2>
+            <div class="nav-links">
+                <a href="/less/less-54?id=1" class="category-challenge">Less-54: Challenge 1</a>
+                <a href="/less/less-55?id=1" class="category-challenge">Less-55: Challenge 2</a>
+                <a href="/less/less-56?id=1" class="category-challenge">Less-56: Challenge 3</a>
+                <a href="/less/less-57?id=1" class="category-challenge">Less-57: Challenge 4</a>
+                <a href="/less/less-58?id=1" class="category-challenge">Less-58: Challenge 5</a>
+                <a href="/less/less-59?id=1" class="category-challenge">Less-59: Challenge 6</a>
+                <a href="/less/less-60?id=1" class="category-challenge">Less-60: Challenge 7</a>
+                <a href="/less/less-61?id=1" class="category-challenge">Less-61: Challenge 8</a>
+                <a href="/less/less-62?id=1" class="category-challenge">Less-62: Challenge 9</a>
+                <a href="/less/less-63?id=1" class="category-challenge">Less-63: Challenge 10</a>
+                <a href="/less/less-64?id=1" class="category-challenge">Less-64: Challenge 11</a>
+                <a href="/less/less-65?id=1" class="category-challenge">Less-65: Challenge 12</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                ⚠️ <strong>免责声明：</strong>本平台仅供学习和研究使用，请勿用于非法用途。<br>
+                <a href="/api/vulnerabilities">API文档</a> | 
+                <a href="https://github.com">GitHub</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

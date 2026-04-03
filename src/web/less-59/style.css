@@ -1,0 +1,19 @@
+/* Less-59 专用样式 - Challenge 6 */
+.description {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 193, 7, 0.2);
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.description p {
+    margin: 10px 0;
+    color: #eaeaea;
+}
+
+.hint {
+    color: #ffd93d !important;
+    font-style: italic;
+}

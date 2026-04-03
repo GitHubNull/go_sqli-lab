@@ -14,9 +14,34 @@ data/*.db
 # Logs
 logs/*.log
 
-# Temporary files - ignore contents but keep the directory
+# Temporary files directory
+# Used for: temporary files, redirect error files, screenshots, debug dumps, etc.
 tmp/*
 !tmp/.gitkeep
+
+# Temporary file patterns
+*.tmp
+*.temp
+*.dump
+*.crash
+*.core
+
+# Screenshot and image dumps
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.svg
+screenshots/
+screencaps/
+
+# Redirect and error files
+*.redirect
+*.error
+stderr.log
+stdout.log
+*.log.*
 
 # IDE files
 .idea/

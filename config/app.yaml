@@ -1,0 +1,25 @@
+server:
+  host: 0.0.0.0
+  port: 8080
+  mode: debug  # debug 或 release
+
+database:
+  type: sqlite  # sqlite, mysql, postgres
+  dsn: ./data/sqli_lab.db  # SQLite数据库文件路径
+  # MySQL/PostgreSQL配置(当type不为sqlite时使用)
+  host: localhost
+  port: 3306
+  user: root
+  password: ""
+  dbname: security
+  sslmode: disable  # PostgreSQL使用
+
+log:
+  level: info  # debug, info, warn, error
+  format: "[%timestamp%] [%level%] [GID:%goroutine%] [%module%] [%function%] [%file%:%line%] - %message%"
+  output: file  # file 或 stdout
+  filepath: ./logs/app.log
+  maxsize: 100  # MB
+  maxbackups: 10
+  maxage: 30    # 天
+  compress: true

@@ -1,0 +1,19 @@
+/* Less-52 专用样式 - ORDER BY Stacked */
+.description {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(78, 205, 196, 0.1);
+    border-radius: 8px;
+    border-left: 4px solid #4ecdc4;
+}
+
+.description p {
+    margin: 10px 0;
+    color: #eaeaea;
+}
+
+.hint {
+    color: #ffd93d !important;
+    font-style: italic;
+}

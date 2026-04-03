@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/less-{{.ID}}/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>{{.Title}}</h1>
+        <div class="content">
+            {{.Content}}
+        </div>
+        <div class="nav">
+            <a href="/">返回首页</a>
+        </div>
+    </div>
+    <script src="/static/js/common.js"></script>
+    <script src="/static/less-{{.ID}}/script.js"></script>
+</body>
+</html>
