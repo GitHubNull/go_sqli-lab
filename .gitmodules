@@ -1,3 +1,4 @@
 [submodule "ref/sqli-labs"]
 	path = ref/sqli-labs
 	url = https://github.com/Audi-1/sqli-labs.git
+	ignore = all
