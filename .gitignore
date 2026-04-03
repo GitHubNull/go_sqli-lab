@@ -1,0 +1,51 @@
+# Go build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Binary output directory - ignore contents but keep the directory
+bin/*
+!bin/.gitkeep
+
+# Data files
+data/*.db
+
+# Logs
+logs/*.log
+
+# Temporary files - ignore contents but keep the directory
+tmp/*
+!tmp/.gitkeep
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Go vendor directory
+vendor/
+
+# Test coverage files
+*.out
+coverage.html
+coverage.txt
+
+# Backup files
+*.bak
+*.backup
+
+# Reference PHP project (large, optional)
+# Uncomment if you don't want to track the reference PHP code
+# ref/
+
+# Environment files
+.env
+.env.local
+.env.*.local
