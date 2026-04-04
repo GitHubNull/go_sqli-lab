@@ -93,6 +93,9 @@ func main() {
 
 // registerRoutes 注册所有路由
 func registerRoutes(r *gin.Engine, database db.Database, log logger.Logger) {
+	// 加载HTML模板
+	r.LoadHTMLGlob("./src/web/*.html")
+
 	// 静态资源 - 从 src/web 目录提供
 	r.Static("/static", "./src/web")
 	r.StaticFile("/", "./src/web/index.html")
@@ -105,6 +108,8 @@ func registerRoutes(r *gin.Engine, database db.Database, log logger.Logger) {
 	{
 		// 数据库状态
 		api.GET("/db-status", handlers.DBStatusHandler(database))
+		// AJAX重置数据库API
+		api.POST("/reset-db", handlers.ResetDBAPIHandler(database, log))
 	}
 
 	// 注册漏洞路由
@@ -113,4 +118,9 @@ func registerRoutes(r *gin.Engine, database db.Database, log logger.Logger) {
 
 	// 设置数据库路由
 	r.GET("/setup-db", handlers.SetupDBHandler(database, log))
+	// 加载重置进度页面
+	r.StaticFile("/loading", "./src/web/loading.html")
+	// 重置成功/错误页面
+	r.GET("/setup-success", handlers.SetupSuccessHandler())
+	r.GET("/setup-error", handlers.SetupErrorHandler())
 }
