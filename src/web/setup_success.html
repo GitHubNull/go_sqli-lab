@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库重置成功 - Go SQLi Lab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="setup-status success-page">
+            <div class="status-icon">
+                ✅
+            </div>
+            <h1>数据库重置成功</h1>
+            <p class="status-message">
+                数据库已成功重置到初始状态
+            </p>
+
+            <div class="setup-details">
+                <h3>📊 重置详情</h3>
+                <div class="detail-list">
+                    <div class="detail-item">
+                        <span class="detail-label">已清除表：</span>
+                        <span class="detail-value">{{.ClearedTables}} 个</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">插入记录：</span>
+                        <span class="detail-value">{{.InsertedRecords}} 条</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">执行时间：</span>
+                        <span class="detail-value">{{.ExecutionTime}}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">数据库类型：</span>
+                        <span class="detail-value">{{.DatabaseType}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setup-actions">
+                <a href="/" class="btn-primary">🏠 返回首页</a>
+                <a href="/less/less-1?id=1" class="btn-secondary">🚀 开始挑战</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

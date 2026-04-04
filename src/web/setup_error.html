@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库重置失败 - Go SQLi Lab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="setup-status error-page">
+            <div class="status-icon">
+                ❌
+            </div>
+            <h1>数据库重置失败</h1>
+            <p class="status-message">
+                数据库重置过程中发生错误
+            </p>
+
+            <div class="error-details">
+                <h3>⚠️ 错误信息</h3>
+                <div class="error-box">
+                    <p>{{.ErrorMessage}}</p>
+                </div>
+                <div class="error-hints">
+                    <h4>💡 可能的解决方案：</h4>
+                    <ul>
+                        <li>检查数据库连接配置是否正确</li>
+                        <li>确认数据库服务是否正常运行</li>
+                        <li>检查是否有足够的权限重置数据库</li>
+                        <li>查看日志文件获取详细信息</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="setup-actions">
+                <a href="/setup-db?reset=true" class="btn-danger">🔄 重试重置</a>
+                <a href="/" class="btn-secondary">🏠 返回首页</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

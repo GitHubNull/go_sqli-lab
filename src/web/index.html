@@ -8,6 +8,12 @@
 </head>
 <body>
     <div class="container">
+        <div class="header-actions">
+            <button onclick="confirmDatabaseReset()" class="btn-reset">
+                🔄 重置数据库
+            </button>
+        </div>
+
         <h1>🔒 Go SQLi Lab</h1>
         <p style="text-align: center; color: #888; margin-bottom: 30px;">
             基于Go语言实现的SQL注入学习平台 | 参考sqli-labs项目
@@ -116,5 +122,14 @@
             </p>
         </div>
     </div>
+
+    <script>
+        function confirmDatabaseReset() {
+            if (confirm('⚠️ 警告：此操作将重置数据库到初始状态！\n\n所有数据将被清除并重新初始化。\n\n是否继续？')) {
+                // 跳转到loading页面，显示进度
+                window.location.href = '/loading';
+            }
+        }
+    </script>
 </body>
 </html>
