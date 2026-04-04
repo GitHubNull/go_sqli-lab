@@ -19,6 +19,7 @@ type Database interface {
 	GetDB() *sql.DB
 	Migrate() error
 	Seed() error
+	Reset() error
 	Close() error
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 	QueryRow(query string, args ...interface{}) *sql.Row
@@ -335,5 +336,182 @@ func (d *defaultDatabase) Seed() error {
 	}
 
 	d.logger.Info("种子数据插入完成")
+	return nil
+}
+
+// Reset 重置数据库 - 清除所有数据并重新初始化
+func (d *defaultDatabase) Reset() error {
+	d.logger.Info("开始重置数据库")
+
+	tables := []string{"users", "emails", "uagents", "referers"}
+	// 添加挑战关卡表
+	for i := 1; i <= 12; i++ {
+		tables = append(tables, fmt.Sprintf("challenge%d", i))
+	}
+
+	// 清除所有表的数据
+	for _, table := range tables {
+		if err := d.clearTable(table); err != nil {
+			d.logger.Error("清除表数据失败", "table", table, "error", err)
+			return fmt.Errorf("清除表 %s 失败: %w", table, err)
+		}
+		d.logger.Info("已清除表数据", "table", table)
+	}
+
+	// 重新插入种子数据
+	if err := d.forceSeed(); err != nil {
+		return fmt.Errorf("重新插入种子数据失败: %w", err)
+	}
+
+	// 插入挑战关卡种子数据
+	if err := d.seedChallenges(); err != nil {
+		return fmt.Errorf("插入挑战关卡数据失败: %w", err)
+	}
+
+	d.logger.Info("数据库重置完成")
+	return nil
+}
+
+// clearTable 清除指定表的数据
+func (d *defaultDatabase) clearTable(tableName string) error {
+	var query string
+
+	switch d.config.Type {
+	case "sqlite":
+		// SQLite 支持 DELETE 和 TRUNCATE（通过 DELETE 实现）
+		query = fmt.Sprintf("DELETE FROM %s", tableName)
+	case "mysql":
+		// MySQL 支持 TRUNCATE
+		query = fmt.Sprintf("TRUNCATE TABLE %s", tableName)
+	case "postgres":
+		// PostgreSQL 支持 TRUNCATE
+		query = fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY", tableName)
+	default:
+		query = fmt.Sprintf("DELETE FROM %s", tableName)
+	}
+
+	_, err := d.db.Exec(query)
+	return err
+}
+
+// forceSeed 强制插入种子数据（不检查数据是否存在）
+func (d *defaultDatabase) forceSeed() error {
+	d.logger.Info("强制插入种子数据")
+
+	// 插入users数据
+	users := []struct {
+		id       int
+		username string
+		password string
+	}{
+		{1, "Dumb", "Dumb"},
+		{2, "Angelina", "I-kill-you"},
+		{3, "Dummy", "p@ssword"},
+		{4, "secure", "crappy"},
+		{5, "stupid", "stupidity"},
+		{6, "superman", "genious"},
+		{7, "batman", "mob!le"},
+		{8, "admin", "admin"},
+	}
+
+	for _, u := range users {
+		var err error
+		if d.config.Type == "postgres" {
+			_, err = d.db.Exec(
+				"INSERT INTO users (id, username, password) VALUES ($1, $2, $3)",
+				u.id, u.username, u.password,
+			)
+		} else {
+			_, err = d.db.Exec(
+				"INSERT INTO users (id, username, password) VALUES (?, ?, ?)",
+				u.id, u.username, u.password,
+			)
+		}
+		if err != nil {
+			return fmt.Errorf("插入用户数据失败: %w", err)
+		}
+	}
+
+	// 插入emails数据
+	emails := []struct {
+		id      int
+		emailID string
+	}{
+		{1, "Dumb@dhakkan.com"},
+		{2, "Angel@iloveu.com"},
+		{3, "Dummy@dhakkan.local"},
+		{4, "secure@dhakkan.local"},
+		{5, "stupid@dhakkan.local"},
+		{6, "superman@dhakkan.local"},
+		{7, "batman@dhakkan.local"},
+		{8, "admin@dhakkan.com"},
+	}
+
+	for _, e := range emails {
+		var err error
+		if d.config.Type == "postgres" {
+			_, err = d.db.Exec(
+				"INSERT INTO emails (id, email_id) VALUES ($1, $2)",
+				e.id, e.emailID,
+			)
+		} else {
+			_, err = d.db.Exec(
+				"INSERT INTO emails (id, email_id) VALUES (?, ?)",
+				e.id, e.emailID,
+			)
+		}
+		if err != nil {
+			return fmt.Errorf("插入email数据失败: %w", err)
+		}
+	}
+
+	d.logger.Info("种子数据插入完成")
+	return nil
+}
+
+// seedChallenges 为挑战关卡表插入种子数据
+func (d *defaultDatabase) seedChallenges() error {
+	d.logger.Info("插入挑战关卡种子数据")
+
+	// 为每个挑战表插入一些随机数据
+	challengeUsers := []struct {
+		username string
+		password string
+	}{
+		{"challenge_user1", "pass1"},
+		{"challenge_user2", "pass2"},
+		{"challenge_user3", "pass3"},
+		{"challenge_user4", "pass4"},
+		{"challenge_user5", "pass5"},
+	}
+
+	for i := 1; i <= 12; i++ {
+		tableName := fmt.Sprintf("challenge%d", i)
+
+		// 为每个挑战表插入1-3个随机用户
+		for j, u := range challengeUsers {
+			if j >= 3+i%3 { // 每个表插入不同数量的用户
+				break
+			}
+
+			var err error
+			if d.config.Type == "postgres" {
+				_, err = d.db.Exec(
+					fmt.Sprintf("INSERT INTO %s (id, username, password) VALUES ($1, $2, $3)", tableName),
+					j+1, u.username, u.password,
+				)
+			} else {
+				_, err = d.db.Exec(
+					fmt.Sprintf("INSERT INTO %s (id, username, password) VALUES (?, ?, ?)", tableName),
+					j+1, u.username, u.password,
+				)
+			}
+			if err != nil {
+				return fmt.Errorf("插入%s数据失败: %w", tableName, err)
+			}
+		}
+	}
+
+	d.logger.Info("挑战关卡数据插入完成")
 	return nil
 }
