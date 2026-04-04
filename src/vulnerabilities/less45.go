@@ -51,7 +51,7 @@ func (l *Less45) handleIndex(c *gin.Context) {
 		return
 	}
 
-	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' and password='%s' LIMIT 0,1", login_user, login_password)
+	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' and password='%s' LIMIT 1 OFFSET 0", login_user, login_password)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

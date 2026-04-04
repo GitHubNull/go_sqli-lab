@@ -47,7 +47,7 @@ func (l *Less65) handleIndex(c *gin.Context) {
 		ua = "Mozilla/5.0"
 	}
 
-	query := fmt.Sprintf("SELECT * FROM challenge12 WHERE ua='%s' LIMIT 0,1", ua)
+	query := fmt.Sprintf("SELECT * FROM challenge12 WHERE ua='%s' LIMIT 1 OFFSET 0", ua)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

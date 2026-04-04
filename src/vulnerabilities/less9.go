@@ -50,7 +50,7 @@ func (l *Less9) handleIndex(c *gin.Context) {
 	}
 
 	// 在SQLite中不支持SLEEP函数，我们通过其他方式模拟
-	query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 0,1", id)
+	query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 1 OFFSET 0", id)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

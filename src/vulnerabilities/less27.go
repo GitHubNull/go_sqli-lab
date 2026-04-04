@@ -54,7 +54,7 @@ func (l *Less27) handleIndex(c *gin.Context) {
 	id = strings.ReplaceAll(id, "SELECT", "")
 	id = strings.ReplaceAll(id, "select", "")
 
-	query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 0,1", id)
+	query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 1 OFFSET 0", id)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

@@ -48,7 +48,7 @@ func (l *Less35) handleIndex(c *gin.Context) {
 	}
 
 	// 整数类型，无引号
-	query := fmt.Sprintf("SELECT * FROM users WHERE id=%s LIMIT 0,1", id)
+	query := fmt.Sprintf("SELECT * FROM users WHERE id=%s LIMIT 1 OFFSET 0", id)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

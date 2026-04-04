@@ -50,7 +50,7 @@ func (l *Less1) handleIndex(c *gin.Context) {
 	}
 
 	// 有漏洞的SQL查询 - 直接拼接
-	query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 0,1", id)
+	query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 1 OFFSET 0", id)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

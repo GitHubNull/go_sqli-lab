@@ -47,7 +47,7 @@ func (l *Less62) handleIndex(c *gin.Context) {
 	}
 
 	// Multiple parentheses challenge
-	query := fmt.Sprintf("SELECT * FROM challenge9 WHERE id=(('%s')) LIMIT 0,1", id)
+	query := fmt.Sprintf("SELECT * FROM challenge9 WHERE id=(('%s')) LIMIT 1 OFFSET 0", id)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

@@ -78,7 +78,7 @@ func (l *Less60) handleIndex(c *gin.Context) {
 	// Prevent direct injection characters in JSON
 	id = strings.ReplaceAll(id, "'", "")
 
-	query := fmt.Sprintf("SELECT * FROM challenge7 WHERE id=%s LIMIT 0,1", id)
+	query := fmt.Sprintf("SELECT * FROM challenge7 WHERE id=%s LIMIT 1 OFFSET 0", id)
 
 	var user models.User
 	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)

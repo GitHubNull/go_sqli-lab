@@ -52,7 +52,7 @@ func (l *Less17) handleIndex(c *gin.Context) {
 	}
 
 	// 先检查用户是否存在
-	checkQuery := fmt.Sprintf("SELECT * FROM users WHERE username='%s' LIMIT 0,1", username)
+	checkQuery := fmt.Sprintf("SELECT * FROM users WHERE username='%s' LIMIT 1 OFFSET 0", username)
 	var user models.User
 	err := l.db.QueryRow(checkQuery).Scan(&user.ID, &user.Username, &user.Password)
 	if err != nil {

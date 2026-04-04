@@ -47,7 +47,7 @@ func (l *Less20) handleIndex(c *gin.Context) {
 	cookie, err := c.Cookie("uname")
 	if err == nil && cookie != "" {
 		// 从Cookie获取用户名并查询
-		query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' LIMIT 0,1", cookie)
+		query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' LIMIT 1 OFFSET 0", cookie)
 		var user models.User
 		err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)
 		if err != nil {
@@ -72,7 +72,7 @@ func (l *Less20) handleIndex(c *gin.Context) {
 	}
 
 	// 验证用户
-	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' and password='%s' LIMIT 0,1", uname, passwd)
+	query := fmt.Sprintf("SELECT * FROM users WHERE username='%s' and password='%s' LIMIT 1 OFFSET 0", uname, passwd)
 	var user models.User
 	err = l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)
 	if err != nil {
