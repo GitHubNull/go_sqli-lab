@@ -10,6 +10,8 @@ import (
 	"go-sqli-lab/src/vulnerabilities"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/gin-gonic/gin"
@@ -22,6 +24,20 @@ var (
 
 func main() {
 	flag.Parse()
+
+	// 在 chdir 前将 --config 相对路径转为绝对路径，防止 chdir 后路径解析错误
+	if !filepath.IsAbs(*configFile) {
+		if absPath, err := filepath.Abs(*configFile); err == nil {
+			*configFile = absPath
+		}
+	}
+
+	// 自动定位项目根目录并切换工作目录
+	if err := ensureProjectRoot(); err != nil {
+		fmt.Fprintf(os.Stderr, "错误: 无法定位项目根目录: %v\n", err)
+		fmt.Fprintf(os.Stderr, "请确保从项目根目录运行程序，或项目根目录下存在 go.mod 文件\n")
+		os.Exit(1)
+	}
 
 	// 加载配置
 	cfg, err := config.Load(*configFile)
@@ -89,6 +105,76 @@ func main() {
 
 	<-quit
 	log.Info("服务器正在关闭...")
+}
+
+// ensureProjectRoot 自动定位项目根目录并切换工作目录
+// 通过向上查找 go.mod 和 config/app.yaml 来确定项目根目录
+func ensureProjectRoot() error {
+	// 如果当前目录下已有 config/app.yaml，说明已经在项目根目录
+	if isProjectRoot("") {
+		return nil
+	}
+
+	// 尝试通过可执行文件路径推断项目根目录
+	// 可执行文件通常在 bin/ 目录下，项目根目录是其父目录
+	exePath, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("获取可执行文件路径失败: %w", err)
+	}
+	// 解析符号链接，归一化路径
+	exePath, err = filepath.EvalSymlinks(exePath)
+	if err != nil {
+		return fmt.Errorf("解析可执行文件路径失败: %w", err)
+	}
+	exeDir := filepath.Dir(exePath)
+
+	// 如果可执行文件在 bin/ 目录下，项目根目录是其父目录（大小写不敏感，兼容 Windows）
+	if strings.EqualFold(filepath.Base(exeDir), "bin") {
+		projectRoot := filepath.Dir(exeDir)
+		if isProjectRoot(projectRoot) {
+			fmt.Fprintf(os.Stderr, "检测到项目根目录: %s\n", projectRoot)
+			if err := os.Chdir(projectRoot); err != nil {
+				return fmt.Errorf("切换到项目根目录失败: %w", err)
+			}
+			return nil
+		}
+	}
+
+	// 向上逐级查找 go.mod 和 config/app.yaml
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	for {
+		if isProjectRoot(dir) {
+			fmt.Fprintf(os.Stderr, "检测到项目根目录: %s\n", dir)
+			if err := os.Chdir(dir); err != nil {
+				return fmt.Errorf("切换到项目根目录失败: %w", err)
+			}
+			return nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+
+	return fmt.Errorf("未找到项目根目录")
+}
+
+// isProjectRoot 检查指定目录是否为本项目的根目录
+// 同时验证 go.mod 和 config/app.yaml 的存在性，防止误定位到其他 Go 项目
+func isProjectRoot(dir string) bool {
+	modPath := filepath.Join(dir, "go.mod")
+	cfgPath := filepath.Join(dir, "config", "app.yaml")
+	if dir == "" {
+		modPath = "go.mod"
+		cfgPath = "config/app.yaml"
+	}
+	_, modErr := os.Stat(modPath)
+	_, cfgErr := os.Stat(cfgPath)
+	return modErr == nil && cfgErr == nil
 }
 
 // registerRoutes 注册所有路由
