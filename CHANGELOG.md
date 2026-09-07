@@ -5,6 +5,17 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.6.0] - 2026-09-08
+
+### Added
+- 新增 Less-70 关卡:Upload XLS Injection(文件上传注入 - 上传二进制 .xls 批量验证,单元格内容可 SQL 注入)
+- 新增 Less-71 关卡:Upload XLSX Injection(文件上传注入 - 上传 .xlsx 批量验证,单元格内容可 SQL 注入)
+- 首页新增"文件上传注入"分区(Less-70 ~ Less-71)与分类样式,并加入头部横幅背景
+- 引入 `github.com/extrame/xls` 依赖(纯 Go 解析二进制 .xls)
+
+### Changed
+- 项目文档体系全面更新:README、AGENTS.md 与 doc/(installation/usage/development) 对齐代码实际实现(71 个关卡、多数据库适配、启动脚本、导出/上传注入玩法等)
+
 ## [1.5.0] - 2026-09-07
 
 ### Added
