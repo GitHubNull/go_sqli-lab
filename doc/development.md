@@ -1,339 +1,388 @@
 # 开发文档
 
-## 项目结构
+本文档面向 go-sqli-lab 的贡献者与二次开发者，描述项目实际代码结构、核心设计约定（配置 / 日志 / 数据库 / 漏洞模块）以及测试与贡献流程。
+
+- 新手安装与运行见 [installation.md](./installation.md)
+- 漏洞利用练习指南见 [usage.md](./usage.md)
+- 仓库级说明见 [../README.md](../README.md)
+
+---
+
+## 1. 环境要求
+
+| 依赖 | 版本要求 | 说明 |
+| --- | --- | --- |
+| Go | 1.25+（`go.mod` 声明 `go 1.25.0`） | 数据库驱动 `modernc.org/sqlite` 为纯 Go 实现，默认构建**不需要 CGO** |
+| Git | 任意较新版本 | 需拉取 `ref/sqli-labs` 子模块 |
+| GNU Make | 可选 | 仅 `Makefile` 目标需要；Windows 可直接使用 `go` 命令 |
+| MySQL / PostgreSQL | 可选 | 仅当开发与多数据库兼容性相关功能时需要，见 [第 9 节](#9-测试与ci) |
+
+> 仓库没有内置 Dockerfile。`Makefile` 中 `docker-build` / `docker-run` 目标需要自行在仓库根目录提供 Dockerfile 后方可使用（参考 [installation.md](./installation.md) 的示例）。
+
+## 2. 仓库结构
 
 ```
 go-sqli-lab/
-├── src/                        # Go 源代码
-│   ├── main.go                # 程序入口
-│   ├── config/                # 配置管理
-│   │   └── config.go         # 配置加载和解析
-│   ├── db/                    # 数据库层
-│   │   └── db.go             # 数据库连接和操作
-│   ├── handlers/              # HTTP 处理器
-│   │   └── handlers.go       # 路由处理器
-│   ├── logger/                # 日志系统
-│   │   ├── logger.go         # 日志实现
-│   │   └── gin.go            # Gin 中间件
-│   ├── models/                # 数据模型
-│   │   └── user.go           # 用户模型
-│   ├── vulnerabilities/       # 漏洞实现
-│   │   ├── vulnerability.go   # 漏洞接口
-│   │   ├── registry.go        # 漏洞注册表
-│   │   ├── base.go            # 基础结构
-│   │   └── less*.go           # 65个漏洞级别
-│   └── web/                   # 静态资源
-│       ├── css/               # 样式文件
-│       ├── less-1/            # 关卡 1 的独立资源
-│       ├── less-2/            # 关卡 2 的独立资源
-│       ├── ...                # 其他关卡资源
-│       ├── less-65/           # 关卡 65 的独立资源
-│       └── index.html         # 主页
-├── config/                     # 配置文件
-│   └── app.yaml              # 配置文件
-├── data/                       # SQLite 数据库
-├── logs/                       # 日志目录
-├── tmp/                        # 临时目录
-├── ref/                        # 参考项目（Git 子模块）
-│   └── sqli-labs/             # 原始 PHP 实现（只读）
-└── doc/                        # 文档目录
+├── src/                          # Go 源码（module: go-sqli-lab，入口为 src/main.go）
+│   ├── main.go                   # 程序入口：flag 解析、项目根定位、路由注册、优雅关闭
+│   ├── config/
+│   │   └── config.go             # 配置加载：默认值 < app.yaml < SQLI_LAB_* 环境变量
+│   ├── db/
+│   │   ├── db.go                 # 数据库层：Dialect 接口 + 多库适配（迁移/种子/重置）
+│   │   ├── db_test.go            # 数据库集成测试（默认 SQLite，可选 MySQL/PostgreSQL）
+│   │   └── test_data/            # SQLite 测试库文件（被 .gitignore 忽略的运行时文件）
+│   ├── handlers/
+│   │   └── handlers.go           # 健康检查、DB 状态、重置数据库、setup 结果页
+│   ├── logger/
+│   │   ├── logger.go             # 日志接口 + lumberjack 轮转默认实现
+│   │   └── gin.go                # GinLogger HTTP 请求日志中间件
+│   ├── models/
+│   │   └── user.go               # User / Email / UAgent / Referer 数据模型
+│   ├── vulnerabilities/          # 漏洞实现（71 个关卡 + 共享工具）
+│   │   ├── vulnerability.go      # Vulnerability 接口定义
+│   │   ├── registry.go           # Registry 注册表 + /api/vulnerabilities API
+│   │   ├── base.go               # BaseLesson：db/logger 注入、renderHTML、logRequest
+│   │   ├── less1.go ~ less71.go  # 各关卡实现
+│   │   ├── export.go             # Less-66/67 导出（关键字查询 + xlsx/xls 生成）
+│   │   ├── upload.go             # Less-70/71 上传（xlsx/xls 解析与入库）
+│   │   ├── resume_export.go      # Less-68/69 简历导出（模板填充 xlsx/xls）
+│   │   └── assets/               # go:embed 嵌入的模板文件（resume_template.xlsx 等）
+│   └── web/                      # 前端资源（go:embed 之外，经 /static 与模板提供）
+│       ├── index.html            # 首页（71 个关卡入口，html/template 渲染）
+│       ├── loading.html / setup_success.html / setup_error.html
+│       ├── css/                  # style.css / common.css
+│       ├── assets/               # 横幅 SVG 等
+│       └── less-1/ ~ less-65/    # 各关卡静态资源目录（index.html/style.css/script.js）
+├── tools/
+│   └── genresume/                # 简历模板生成器（输出 src/vulnerabilities/assets/resume_template.xlsx）
+├── config/app.yaml               # 默认配置文件
+├── data/                         # SQLite 数据库文件目录（运行时生成 sqli_lab.db）
+├── logs/                         # 应用日志目录（运行时生成 app.log）
+├── tmp/                          # logRequest 记录的练习请求痕迹（tmp/<lesson>/result.txt）
+├── bin/                          # 构建产物目录（go-sqli-lab / go-sqli-lab.exe）
+├── scripts/                      # 三平台一键启动脚本（构建 + 初始化 + 打开浏览器）
+├── ref/sqli-labs/                # ⚠️ 只读 Git 子模块（原始 PHP 参考实现）
+└── doc/                          # 文档（installation / usage / development）
 ```
 
-## Git 子模块说明
+## 3. 启动流程与代码路径（main.go）
 
-### ref/sqli-labs（只读依赖）
+启动链路：`main()` → flag 解析 → `ensureProjectRoot()` → `config.Load()` → `logger.New()` → `db.New()` → 按模式执行。
 
-`ref/sqli-labs/` 目录是一个 **Git 子模块**，指向原始 PHP 实现 [sqli-labs](https://github.com/Audi-1/sqli-labs)。
+1. **flag 解析**：`--config`（配置文件路径，默认 `config/app.yaml`，相对路径会先转绝对路径）；`--setup-db`（仅初始化数据库后退出）。
+2. **项目根定位**（`ensureProjectRoot`）：依次尝试 —— 当前目录直接是项目根（同时存在 `go.mod` 与 `config/app.yaml`）；可执行文件位于 `bin/` 时取其父目录；向上逐级查找。因此**预编译二进制可以在仓库内任意子目录运行**。
+3. **数据库初始化**：`--setup-db` 模式下执行 `database.Migrate()` + `database.Seed()` 后退出。
+4. **Web 模式**：`gin.New()` + `gin.Recovery()` + `logger.GinLogger` 中间件，随后 `registerRoutes`：
+   - `r.LoadHTMLGlob("./src/web/*.html")`：首页与 setup 页模板；
+   - `r.Static("/static", "./src/web")` + `r.StaticFile("/", ...)`：静态资源；
+   - `/health`、`/api/db-status`、`/api/reset-db`（AJAX）、`/setup-db`、`/loading`、`/setup-success`、`/setup-error`；
+   - `vulnerabilities.NewRegistry(...).RegisterAll(r)`：注册全部关卡路由（`/less/*`）与漏洞列表 API。
+5. **优雅关闭**：监听 `SIGINT` / `SIGTERM` 后退出。
 
-**⚠️ 重要：此目录为只读，永远不要修改！**
+## 4. 配置管理（config）
 
-#### 子模块信息
-- **路径**: `ref/sqli-labs/`
-- **来源**: https://github.com/Audi-1/sqli-labs
-- **用途**: 作为参考实现，用于理解漏洞模式并移植到 Go
-- **更新方式**: 仅通过 Git 子模块命令同步上游更新
+配置优先级（后者覆盖前者）：
 
-#### 克隆包含子模块的项目
+```
+代码内默认值 < config/app.yaml < SQLI_LAB_* 环境变量
+```
+
+核心配置项（`config/app.yaml`，注释已说明取值范围）：
+
+| 分组 | 键 | 默认值 | 环境变量 |
+| --- | --- | --- | --- |
+| server | host / port / mode | `0.0.0.0` / `8080` / `debug` | `SQLI_LAB_HOST` / `SQLI_LAB_PORT` / `SQLI_LAB_MODE` |
+| database | type | `sqlite`（可选 `mysql` / `postgres`） | `SQLI_LAB_DB_TYPE` |
+| database | dsn | `./data/sqli_lab.db` | `SQLI_LAB_DB_DSN` |
+| database | host/port/user/password/dbname/sslmode | 见 app.yaml | `SQLI_LAB_DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` |
+| log | level / output / filepath 等 | `info` / `file` / `./logs/app.log` | `SQLI_LAB_LOG_LEVEL` / `SQLI_LAB_LOG_FILE` |
+
+**新增配置项的落地步骤**：
+
+1. `src/config/config.go`：在对应结构体（`ServerConfig` / `DatabaseConfig` / `LogConfig`）中添加字段；
+2. 在 `Load()` 的默认值与 env 覆盖段中同步（名称保持 `SQLI_LAB_*` 前缀规范）；
+3. `config/app.yaml` 补充注释化的默认值；
+4. 使用方（如 `db.New` 的 DSN 组装）读取新字段。
+
+**多数据库切换示例**（本地开发时常用）：
 
 ```bash
-# 方式一：克隆时包含子模块
-git clone --recursive https://github.com/yourusername/go-sqli-lab.git
-
-# 方式二：克隆后初始化子模块
-git clone https://github.com/yourusername/go-sqli-lab.git
-cd go-sqli-lab
-git submodule update --init --recursive
+# 使用 MySQL
+set SQLI_LAB_DB_TYPE=mysql
+set SQLI_LAB_DB_HOST=127.0.0.1
+set SQLI_LAB_DB_PORT=3306
+set SQLI_LAB_DB_USER=root
+set SQLI_LAB_DB_PASSWORD=yourpass
+set SQLI_LAB_DB_NAME=security
+go run src/main.go --setup-db
 ```
 
-#### 同步上游更新
+## 5. 日志系统（logger）
 
-仅当原始 sqli-labs 项目更新时才执行：
+- `logger.New(cfg LogConfig)` 返回 `logger.Logger` 接口（`Debug/Info/Warn/Error/Fatal`），支持 **KV 结构化字段**，例如 `log.Info("注册漏洞", "id", v.ID(), "name", v.Name())`。
+- 默认实现写文件并轮转：由 app.yaml 的 `log` 节控制（`filepath`、`maxsize`(MB)、`maxbackups`、`maxage`(天)、`compress`）；`output` 可为 `file` 或 `stdout`。日志行格式由 `format` 定义，支持 `%timestamp% %level% %goroutine% %module% %function% %file% %line% %message%` 令牌。
+- `logger.GinLogger` 是 Gin 中间件，自动记录每个 HTTP 请求（方法、路径、状态等），在 `main.go` 中全局挂载。
+- 测试中常用配置：`logger.New(config.LogConfig{Level: "error", Output: "stdout"})`（见 `db_test.go`）。
 
-```bash
-# 获取上游最新版本
-git submodule update --init --remote ref/sqli-labs
+**最佳实践**：
 
-# 或者更新所有子模块
-git submodule update --init --remote --recursive
+- 结构化字段优先于拼接字符串：`log.Error("查询失败", "lesson", "less-8", "error", err)`；
+- 业务错误按级别区分：正常练习流量无需记录到应用日志（由 `logRequest` 承接，见下），真正异常才用 `Error`；
+- **区分两套“记录”**：
+  - `BaseLesson.logRequest(c, lesson)` → 追加写入 `tmp/<lesson>/result.txt`，记录请求方法与查询参数，供练习复盘（如 sqlmap 扫描痕迹）；`make clean` 会清空 `tmp/`；
+  - 应用日志 `logs/app.log` → 系统运行日志。
+
+## 6. 数据库层（db）
+
+### 6.1 接口
+
+`db.go` 中 `Database` 接口统一对上层（关卡、handlers）暴露：
+
+| 方法 | 用途 |
+| --- | --- |
+| `GetDB() *sql.DB` | 原始连接（如事务） |
+| `Migrate() error` | 建表（幂等，方言分支） |
+| `Seed() error` | 插入种子数据（幂等） |
+| `Reset() error` | 清空全部表并强制重灌 |
+| `Query / QueryRow / Exec` | 便捷执行（占位符参数或裸 SQL，供关卡拼接注入） |
+| `Close() error` | 关闭连接池 |
+
+`db.New(cfg, log)` 依据 `cfg.Type` 选择实现并组装 DSN：sqlite（`modernc.org/sqlite`，纯 Go）、mysql（`go-sql-driver/mysql`）、postgres（`lib/pq`）。
+
+### 6.2 表结构总览（Migrate 创建 17 张表）
+
+| 表 | 用途 |
+| --- | --- |
+| `users` / `emails` / `uagents` / `referers` | 练习基础表（Less-1~22、46~53 等） |
+| `challenge1` ~ `challenge12` | 挑战关卡专用（Less-54~65 固定查询各自挑战表） |
+| `resumes` | 简历导出专用（Less-68/69），含 20 列中文求职数据 |
+
+种子账号固定 8 条（与 PHP 原版一致）：`Dumb/Dumb`、`Angelina/I-kill-you`、…、`admin/admin`。
+
+### 6.3 迁移 / 种子 / 重置语义（重要）
+
+| 方法 | 行为 |
+| --- | --- |
+| `Migrate()` | 按方言分支 `CREATE TABLE IF NOT EXISTS`，可重复执行 |
+| `Seed()` | **幂等**：先保证 `resumes` 已种入（独立判断）；再检查 `users` 是否非空，非空则跳过。首次 `--setup-db` 后仅有基础表数据 |
+| `Reset()` | 清空 **17 张表**（`users/emails/uagents/referers/resumes` + `challenge1~12`）→ `forceSeed()` 强制重灌 → `seedChallenges()` 注入挑战表数据 |
+
+清空语句按方言区分：sqlite `DELETE FROM`、mysql `TRUNCATE TABLE`、postgres `TRUNCATE TABLE ... RESTART IDENTITY`。
+
+> 挑战关卡（Less-54~65）的 `challengeN` 数据只经 `Reset()` 注入。首次安装（`--setup-db`）后请先在首页执行一次“重置数据库”，或访问 `http://localhost:8080/setup-db?reset=true` 触发，挑战关卡才有数据可注入。
+
+### 6.4 跨数据库兼容约定（新增 SQL 时必读）
+
+漏洞 SQL 以**字符串拼接**刻意实现，因此每一条语句都必须兼容三种数据库：
+
+1. **分页写法统一 `LIMIT 1 OFFSET 0`**（禁止 `LIMIT 0,1`，PostgreSQL 不支持）；
+2. **占位符**：sqlite/mysql 用 `?`，postgres 用 `$1`；同一逻辑尽量写成方言分支（参考 `Seed()`/`forceSeed()` 中对 postgres 的分支写法）；
+3. 自增主键显式插入 id 时注意 postgres 需要 `RESTART IDENTITY` 才能重置自增序列；
+4. 新增表请保持小写表名与既有风格（单数）；字符串值默认 `'...'` 包裹，与各关卡利用方式保持一致。
+
+### 6.5 修改数据模型时的同步清单
+
+当新增业务表或改动字段时，请同步：
+
+1. `db.go Migrate()` 中对应方言建表语句；
+2. `Seed()` / `forceSeed()` / `seedResumes()` / `seedChallenges()` 的种子数据；
+3. `Reset()` 的 `tables` 清空列表；
+4. `src/db/db_test.go` 的 `tables` 断言与行数断言；
+5. 文档：`README.md`（功能描述）、`doc/usage.md`（如影响关卡）与 `CHANGELOG.md`。
+
+## 7. 漏洞关卡开发（vulnerabilities）
+
+### 7.1 接口与基类
+
+```go
+type Vulnerability interface {
+    ID() string          // 唯一 ID，如 "less-71"
+    Name() string        // 展示名
+    Description() string // 中文描述
+    Category() string    // 分类（与首页分类对应，如 "Error Based"/"Blind"/"WAF Bypass" 等）
+    Route(r *gin.RouterGroup) // 在 /less 组下注册本关卡路由
+}
 ```
 
-#### 禁止的操作
+`BaseLesson` 被所有关卡内嵌，提供：
 
-在 `ref/sqli-labs/` 目录中：
-- ❌ **永远不要修改任何文件**
-- ❌ **永远不要添加新文件**
-- ❌ **永远不要删除文件**
-- ❌ **永远不要重命名文件**
+- `db db.Database`、`logger logger.Logger`（构造时由 `registerLessN` 注入）；
+- `logRequest(c, lesson)`：请求记录到 `tmp/<lesson>/result.txt`（lesson 可带动作后缀，如 `less-24-create`）；
+- `renderHTML(c, lesson, result, errMsg)`：内联输出统一风格 HTML 页面（含 `/static/css/style.css` 与“返回首页”链接），结果与错误分别经 `renderResult` / `renderError` 包成成功/失败样式块。
 
-如需参考代码，请：
-- ✅ 在 `src/vulnerabilities/` 中创建新的 Go 实现
-- ✅ 在 `src/web/less-X/` 中创建独立的前端资源
-- ✅ 阅读并理解参考代码的漏洞逻辑
-
----
-
-## 添加新漏洞关卡
-
-### 1. 创建漏洞文件
-
-在 `src/vulnerabilities/` 下创建 `lessX.go`：
+### 7.2 典型关卡骨架（以 GET 单参数为例）
 
 ```go
 package vulnerabilities
 
 import (
-	"database/sql"
-	"fmt"
-	"go-sqli-lab/src/models"
-	"github.com/gin-gonic/gin"
+    "database/sql"
+    "fmt"
+
+    "go-sqli-lab/src/models"
+
+    "github.com/gin-gonic/gin"
 )
 
-// LessX 描述你的漏洞类型
 type LessX struct {
-	BaseLesson
+    BaseLesson
 }
 
-func (l *LessX) ID() string {
-	return "less-x"
-}
-
-func (l *LessX) Name() string {
-	return "Less-X: 漏洞名称"
-}
-
-func (l *LessX) Description() string {
-	return "漏洞描述"
-}
-
-func (l *LessX) Category() string {
-	return "分类"  // 如: Error Based, Blind, WAF Bypass 等
-}
+func (l *LessX) ID() string          { return "less-x" }
+func (l *LessX) Name() string        { return "Less-X: 示例关卡" }
+func (l *LessX) Description() string { return "GET请求 - 字符型注入示例" }
+func (l *LessX) Category() string    { return "Error Based" }
 
 func (l *LessX) Route(r *gin.RouterGroup) {
-	group := r.Group("/less-x")
-	{
-		group.GET("", l.handleIndex)
-		group.GET("/", l.handleIndex)
-		// 添加其他路由
-	}
+    group := r.Group("/less-x")
+    {
+        group.GET("", l.handleIndex)
+        group.GET("/", l.handleIndex)
+        // 按需补充 POST /login 等路由（参考 less11.go / less24.go）
+    }
 }
 
 func (l *LessX) handleIndex(c *gin.Context) {
-	l.logRequest(c, "less-x")
+    l.logRequest(c, "less-x")
 
-	// 获取参数
-	id := c.Query("id")
-	if id == "" {
-		l.renderHTML(c, "less-x", "提示信息", "")
-		return
-	}
+    id := c.Query("id")
+    if id == "" {
+        id = "1"
+    }
 
-	// 构造有漏洞的SQL查询
-	query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 0,1", id)
+    // 刻意使用字符串拼接构造漏洞（仅用于教学靶场）
+    query := fmt.Sprintf("SELECT * FROM users WHERE id='%s' LIMIT 1 OFFSET 0", id)
 
-	var user models.User
-	err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)
+    var user models.User
+    err := l.db.QueryRow(query).Scan(&user.ID, &user.Username, &user.Password)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            l.renderHTML(c, "less-x", "", "没有找到记录")
+        } else {
+            l.renderHTML(c, "less-x", "", err.Error()) // 报错注入：透出 SQL 错误
+        }
+        return
+    }
 
-	if err != nil {
-		if err == sql.ErrNoRows {
-			l.renderHTML(c, "less-x", "", "未找到记录")
-		} else {
-			l.renderHTML(c, "less-x", "", err.Error())  // 显示SQL错误
-		}
-		return
-	}
-
-	result := fmt.Sprintf("Your Login name: %s<br>Your Password: %s", 
-		user.Username, user.Password)
-	l.renderHTML(c, "less-x", result, "")
+    result := fmt.Sprintf("Your Login name: %s<br>Your Password: %s", user.Username, user.Password)
+    l.renderHTML(c, "less-x", result, "")
 }
 
+// registry.go: RegisterAll 中按编号加入一行
 func (r *Registry) registerLessX() {
-	r.Register(&LessX{BaseLesson{db: r.db, logger: r.logger}})
+    r.Register(&LessX{BaseLesson{db: r.db, logger: r.logger}})
 }
 ```
 
-### 2. 注册漏洞
+### 7.3 新增一个关卡的标准步骤
 
-在 `registry.go` 中的 `RegisterAll` 方法中添加：
+1. **实现**：在 `src/vulnerabilities/lessX.go` 中按 7.2 骨架实现 `Vulnerability` 接口；有漏洞点的地方必须**刻意用 `fmt.Sprintf` 拼接**，并注释说明漏洞类型；
+2. **注册**：在 `registry.go` 的 `RegisterAll()` 中按编号顺序添加 `r.registerLessX()`（`Register` 会自动记录日志并挂到 `/less` 组）；
+3. **入口与资源**：简单的关卡由 handler 内联渲染即可；如需独立页面/脚本，在 `src/web/less-X/` 下建资源目录（通过 `/static/less-X/...` 引用，样式统一引 `/static/css/style.css`）；
+4. **首页入口**：在 `src/web/index.html` 对应分类区块添加 `<a href="/less/less-x?id=1">Less-X: 描述</a>`；若引入新分类，需在 `src/web/css/style.css` / `common.css` 中为该分类补充样式类并保持首页区块结构一致；
+5. **数据**：若查询新表，按 6.5 清单同步 `db.go` 与测试；
+6. **文档**：更新 `README.md` 关卡地图、`doc/usage.md`（如提供新利用思路）并追加 `CHANGELOG.md`。
 
-```go
-func (r *Registry) RegisterAll(router *gin.Engine) {
-	// ... 其他注册
-	r.registerLessX()  // 添加新行
-	
-	// 注册路由
-	vulnGroup := router.Group("/less")
-	for _, v := range r.vulnerabilities {
-		v.Route(vulnGroup)
-	}
-}
+### 7.4 特殊类型关卡共享实现
+
+- **导出（Less-66/67，export.go）**：页面提供关键字搜索框，后端拼 `LIKE '%keyword%'` 查询并生成 `xlsx/xls` 文件流下载；xlsx 用标准库 `archive/zip` 手写 OOXML，xls 用 HTML + office 命名空间伪表格 —— 关键字处即注入点。
+- **简历导出（Less-68/69，resume_export.go）**：查询 `resumes` 表（20 列），xlsx 走 `excelize` + `go:embed` 模板（`assets/resume_template.xlsx`，字段按 `RESUME:<字段名>` 占位符替换）；模板本身由 `tools/genresume` 生成 —— 改模板时改 `tools/genresume/main.go` 并重新生成，不要手改二进制模板。
+- **上传（Less-70/71，upload.go）**：先下载模板（xlsx 动态生成 / xls 嵌入资源），用户以单元格内容作 keyword 上传；`processUploadData` 跳过表头行、取每行第一列入库；上传大小限制 10MB；xls 解析依赖 `github.com/extrame/xls`。
+
+## 8. 前端说明
+
+项目没有通用 HTML 模板引擎（旧版文档所述的 `{{.Title}}` 模板体系**不存在**），页面分三种形态：
+
+1. **html/template 页面**：仅 `src/web/*.html`（`index.html`、`loading.html`、`setup_success.html`、`setup_error.html`），由 `r.LoadHTMLGlob` 加载、handlers 渲染 —— 首页即在此种；
+2. **关卡静态资源**：`src/web/less-1/ ~ less-65/` 的 `index.html` / `style.css` / `script.js`，经 `/static` 前缀访问；这些页面负责表单 UI，实际数据渲染仍由后端完成；
+3. **后端内联渲染**：多数关卡（含 Less-66~71，`renderExportPage` / `renderUploadPage` 等）直接在 Go 代码里以字符串拼 HTML 输出，`renderHTML` 提供统一壳层。
+
+前端样式集中在 `src/web/css/style.css`（关卡通用）与 `common.css`（布局基元）；修改首页结构时注意与 `handlers` 渲染的 setup 流程页面（`/setup-db` 等）保持一致的视觉风格。
+
+## 9. 测试与 CI
+
+### 9.1 数据库集成测试（src/db/db_test.go）
+
+五个测试用例覆盖数据库层全部契约：
+
+| 用例 | 验证点 |
+| --- | --- |
+| `TestDatabase_Connect` | 连接 + Ping |
+| `TestDatabase_Migrate` | 16 张业务表（4 基础 + challenge1~12）按方言存在（resumes 表由其他用例间接覆盖） |
+| `TestDatabase_Seed` | `users`/`emails` 各 8 条；`id=1` 为 `Dumb/Dumb` |
+| `TestDatabase_Reset` | 重置后数据恢复为种子状态 |
+| `TestDatabase_Query_LIMIT` | `LIMIT 1 OFFSET 0` 语法三库可用（回归保护） |
+
+**测试矩阵开关**：默认只跑 SQLite（测试库 `src/db/test_data/test_sqli_lab.db`）；设置以下环境变量即自动加入 MySQL / PostgreSQL：
+
+```
+TEST_MYSQL_HOST / TEST_MYSQL_PORT(3306) / TEST_MYSQL_USER(root) /
+TEST_MYSQL_PASSWORD / TEST_MYSQL_DB(test_sqli_lab)
+
+TEST_POSTGRES_HOST / TEST_POSTGRES_PORT(5432) / TEST_POSTGRES_USER(postgres) /
+TEST_POSTGRES_PASSWORD / TEST_POSTGRES_DB(test_sqli_lab)
 ```
 
-### 3. 创建前端资源
-
-在 `src/web/less-X/` 目录下创建独立的静态资源：
-
-```
-src/web/less-X/
-├── index.html    # 关卡页面
-├── style.css     # 关卡样式
-└── script.js     # 关卡脚本
-```
-
-### 4. 更新主页
-
-在 `src/web/index.html` 中添加链接：
-
-```html
-<a href="/less/less-x?id=1" class="category-error">Less-X: 描述</a>
-```
-
----
-
-## 数据库操作
-
-### 执行查询
-
-```go
-// 单行查询
-var user models.User
-err := l.db.QueryRow("SELECT * FROM users WHERE id=?", id).Scan(&user.ID, &user.Username, &user.Password)
-
-// 多行查询
-rows, err := l.db.Query("SELECT * FROM users")
-defer rows.Close()
-for rows.Next() {
-	var user models.User
-	rows.Scan(&user.ID, &user.Username, &user.Password)
-}
-
-// 执行语句
-result, err := l.db.Exec("INSERT INTO users (username, password) VALUES (?, ?)", username, password)
-```
-
-### 事务支持
-
-```go
-tx, err := l.db.GetDB().Begin()
-// ... 执行操作
-tx.Commit()  // 或 tx.Rollback()
-```
-
----
-
-## 日志记录
-
-### 在漏洞中使用日志
-
-```go
-func (l *LessX) handleIndex(c *gin.Context) {
-	// 记录请求
-	l.logRequest(c, "less-x")
-	
-	// 使用 logger
-	l.logger.Info("处理请求", "ip", c.ClientIP())
-	l.logger.Debug("SQL查询", "query", query)
-	l.logger.Error("发生错误", "error", err)
-}
-```
-
----
-
-## 前端开发
-
-### 使用模板
-
-基础HTML模板：
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="UTF-8">
-	<title>{{.Title}}</title>
-	<link rel="stylesheet" href="/static/css/common.css">
-	<link rel="stylesheet" href="/static/less-X/style.css">
-</head>
-<body>
-	<div class="container">
-		<h1>{{.Title}}</h1>
-		<!-- 内容 -->
-		<div class="nav">
-			<a href="/">返回首页</a>
-		</div>
-	</div>
-	<script src="/static/less-X/script.js"></script>
-</body>
-</html>
-```
-
-### 添加CSS样式
-
-每个关卡使用独立的 `style.css`，公共样式放在 `src/web/css/common.css`。
-
----
-
-## 测试
-
-### 运行测试
+本地执行：
 
 ```bash
-go test ./...
+go test -v ./...                                  # SQLite 全量
+go test -v ./src/db/...                           # 仅数据库层
+go test -cover ./...                              # 覆盖率
+# 加入 MySQL/PostgreSQL（PowerShell 同理，用 $env:TEST_MYSQL_HOST=...）
+TEST_MYSQL_HOST=127.0.0.1 TEST_MYSQL_PASSWORD=secret go test -v ./src/db/...
 ```
 
-### 添加单元测试
+### 9.2 CI（.github/workflows/ci.yml）
 
-创建 `src/vulnerabilities/lessX_test.go`：
+每次 push / PR（`master`、`main` 分支）自动执行：
 
-```go
-package vulnerabilities
+- `test-sqlite`：`go mod tidy` → `go test ./src/db/...` → `go build` → `--setup-db` 后启动并探测 `/health`；
+- `test-mysql` / `test-postgres`：以 GitHub Actions `services` 起 MySQL 8.0 / PostgreSQL 15 容器，注入 `TEST_*` 环境变量后跑 `go test ./src/db/...`；
+- `lint`：golangci-lint（v2.13.2，规则见 `.golangci.yml`）。
 
-import (
-	"testing"
-	"github.com/gin-gonic/gin"
-)
+提交前请本地跑齐：`go fmt ./...`、`go vet ./...`、`go test ./...`。
 
-func TestLessX(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	// 测试代码
-}
-```
+## 10. 常用命令
 
----
+### Makefile（类 Unix 环境）
 
-## 贡献指南
+| 目标 | 等价手动命令 | 说明 |
+| --- | --- | --- |
+| `make build` | `go build -o bin/go-sqli-lab src/main.go` | 构建二进制 |
+| `make run` | `go run src/main.go` | 直接运行 |
+| `make run-setup` | `go run src/main.go --setup-db` | 初始化数据库并运行（注意：`--setup-db` 后即退出，不进入 Web 模式） |
+| `make setup-db` | `go run src/main.go --setup-db` | 仅初始化数据库 |
+| `make deps` | `go mod tidy` | 整理依赖 |
+| `make test` / `make test-coverage` | `go test -v ./...` / `go test -cover ./...` | 测试 |
+| `make fmt` / `make vet` | `go fmt ./...` / `go vet ./...` | 静态检查 |
+| `make logs` | `tail -f logs/app.log` | 跟踪运行日志 |
+| `make clean` | — | 删除 `bin/`、`logs/`、`tmp/`（谨慎：清空练习记录） |
+| `make help` | — | 目标列表 |
 
-1. Fork 项目
-2. 创建分支 (`git checkout -b feature/new-lesson`)
-3. 提交更改 (`git commit -am 'Add new lesson'`)
-4. 推送分支 (`git push origin feature/new-lesson`)
-5. 创建 Pull Request
+Windows 无 Make 时直接使用左侧 `go` 命令即可（PowerShell）。
 
-## 代码规范
+### 启动脚本（scripts/）
 
-- 使用 `go fmt` 格式化代码
-- 添加必要的注释
-- 遵循 Go 命名规范
-- 编写清晰的提交信息
-- **永远不要修改 `ref/sqli-labs/` 中的文件**
+`start-linux.sh` / `start-macos.command` / `start-windows.bat` 的行为一致：检测 Go → `go build` 到 `bin/` → 执行 `--setup-db` 初始化 → 启动服务并自动打开浏览器（设置 `SQLI_LAB_NO_BROWSER=1` 可禁用自动打开）。脚本内路径均相对仓库根目录，请从根目录调用。
+
+## 11. 代码规范与贡献指南
+
+### 规范要点
+
+- 全部代码遵循 `gofmt` 风格，并通过 `go vet` 与 golangci-lint；
+- 关卡内**刻意保留 SQL 拼接漏洞**，但必须有注释标明漏洞成因与类型；公共/基础设施代码（config、db、logger、handlers）不允许出现注入写法；
+- 中文注释与用户可见文案保持中文；提交信息建议遵循仓库既有风格；
+- ⚠️ **`ref/sqli-labs/` 为只读子模块：禁止修改 / 新增 / 删除 / 重命名其中任何文件**；仅可阅读参考，移植实现一律写入 `src/vulnerabilities/`。
+
+### 提交流程
+
+1. `git clone --recursive`（或 clone 后 `git submodule update --init --recursive`）；
+2. 新建分支：`git checkout -b feature/less-new` 或 `fix/xxx`；
+3. 本地验证：`make fmt vet test`（涉及多库改动请按 9.1 补跑 MySQL/PG）；
+4. 文档同步：功能/关卡变化必须同步 `README.md` 关卡地图、相关 `doc/*.md`，并在 `CHANGELOG.md` 按语义化版本追加条目；
+5. 提交并推送，创建 Pull Request（描述中说明：漏洞类型、对应表、测试范围）。
+
+### 发布（版本号同步约定）
+
+版本号同步维护在 `CHANGELOG.md`（如 `## v1.5.0 (2026-09-07)`）与 `src/main.go` 启动日志的 `"version"` 字段中，发版时两处需一致；若以 tag 发布，tag 名与二者保持一致。
