@@ -535,3 +535,108 @@ tr:nth-child(even) {
         text-align: center;
     }
 }
+
+/* ======================= 简历预览查询结果卡片 =======================
+   简历导出关卡（Less-68/69）预览时，把每条记录渲染成一张
+   「应聘人员求职登记表」卡片，布局 / 配色模拟导出 Excel 模板：
+   左侧照片位，右侧 4×4 短字段对 + 4 行长文本字段，底部签名行。
+   多张卡片自上而下排列成滚动区。
+*/
+.resume-card {
+    margin: 16px 0;
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+    background: rgba(13, 17, 37, 0.4);
+}
+
+.resume-card .rc-title {
+    background: linear-gradient(180deg, rgba(31, 78, 120, 0.95), rgba(47, 84, 150, 0.9));
+    color: #fff;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    padding: 10px 0;
+}
+
+.resume-card .rc-meta {
+    font-size: 11px;
+    color: #9fb0d6;
+    padding: 5px 14px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.3);
+    background: rgba(102, 126, 234, 0.06);
+}
+
+.resume-card .rc-grid {
+    display: grid;
+    grid-template-columns: 56px 78px 1fr 78px 1fr 78px 1fr 78px 1fr;
+    font-size: 13px;
+}
+
+/* 照片位：跨越所有右侧行 */
+.resume-card .rc-photo {
+    grid-row: 1 / span 8;
+    background: rgba(226, 232, 240, 0.9);
+    color: #6b7a99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.3;
+    border-right: 1px solid rgba(102, 126, 234, 0.35);
+}
+
+.resume-card .rc-label {
+    background: rgba(68, 114, 196, 0.22);
+    color: #d7e3ff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.resume-card .rc-val {
+    background: rgba(255, 255, 255, 0.03);
+    color: #eef2ff;
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    word-break: break-word;
+}
+
+/* 长文本字段：标签占一列，值跨 7 列 */
+.resume-card .rc-label-wide {
+    white-space: normal;
+    min-height: 30px;
+}
+
+.resume-card .rc-val-wide {
+    grid-column: span 7;
+    white-space: pre-wrap;
+}
+
+.resume-card .rc-sign {
+    font-size: 12px;
+    color: #9fb0d6;
+    padding: 8px 14px;
+    border-top: 1px solid rgba(102, 126, 234, 0.3);
+    background: rgba(102, 126, 234, 0.06);
+}
+
+.resume-card-empty {
+    text-align: center;
+    color: #8fa3d9;
+    padding: 30px;
+    font-size: 14px;
+    border: 1px dashed rgba(102, 126, 234, 0.4);
+    border-radius: 10px;
+    margin: 16px 0;
+}

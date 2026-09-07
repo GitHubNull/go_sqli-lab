@@ -112,6 +112,8 @@ func (r *Registry) RegisterAll(router *gin.Engine) {
 	r.registerLess65()
 	r.registerLess66()
 	r.registerLess67()
+	r.registerLess68()
+	r.registerLess69()
 
 	// 注册漏洞路由组
 	vulnGroup := router.Group("/less")
