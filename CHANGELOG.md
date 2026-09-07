@@ -5,6 +5,16 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.5.0] - 2026-09-07
+
+### Added
+- 新增 Less-68 关卡:Resume Export XLS Injection(简历导出注入 - 按"应聘人员求职登记表"导出 XLS 文件,查询关键字可 SQL 注入)
+- 新增 Less-69 关卡:Resume Export XLSX Injection(简历导出注入 - 按"应聘人员求职登记表"导出 XLSX 文件,查询关键字可 SQL 注入)
+- 新增 `resumes` 表迁移/种子/重置逻辑,兼容 SQLite/MySQL/PostgreSQL
+- 首页"文件导出注入"分区扩展至 Less-66 ~ Less-69,新增简历登记表卡片预览样式
+- 新增简历模板生成工具 `tools/genresume`(基于 excelize 生成 XLSX 模板文件)
+- 引入 `github.com/xuri/excelize/v2` 依赖
+
 ## [1.4.0] - 2026-09-07
 
 ### Added

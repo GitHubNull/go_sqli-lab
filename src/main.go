@@ -54,7 +54,7 @@ func main() {
 	}
 	defer log.Close()
 
-	log.Info("启动 go-sqli-lab 服务器", "version", "1.4.0")
+	log.Info("启动 go-sqli-lab 服务器", "version", "1.5.0")
 
 	// 初始化数据库
 	database, err := db.New(cfg.Database, log)
