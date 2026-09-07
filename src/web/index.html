@@ -8,16 +8,21 @@
 </head>
 <body>
     <div class="container">
-        <div class="header-actions">
-            <button onclick="confirmDatabaseReset()" class="btn-reset">
-                🔄 重置数据库
-            </button>
-        </div>
+        <div class="header-banner">
+            <img src="/static/assets/header-bg.svg" alt="" class="header-bg" aria-hidden="true"/>
+            <div class="header-overlay">
+                <div class="header-actions">
+                    <button onclick="confirmDatabaseReset()" class="btn-reset">
+                        🔄 重置数据库
+                    </button>
+                </div>
 
-        <h1>🔒 Go SQLi Lab</h1>
-        <p style="text-align: center; color: #888; margin-bottom: 30px;">
-            基于Go语言实现的SQL注入学习平台 | 参考sqli-labs项目
-        </p>
+                <h1>🔒 Go SQLi Lab</h1>
+                <p style="text-align: center; color: #888; margin-bottom: 30px;">
+                    基于Go语言实现的SQL注入学习平台 | 参考sqli-labs项目
+                </p>
+            </div>
+        </div>
 
         <div class="section">
             <h2>📚 基础挑战 (Less-1 ~ Less-10)</h2>
@@ -121,6 +126,14 @@
                 <a href="/less/less-67" class="category-export">Less-67: Export XLSX Injection</a>
                 <a href="/less/less-68" class="category-export">Less-68: Resume Export XLS Injection</a>
                 <a href="/less/less-69" class="category-export">Less-69: Resume Export XLSX Injection</a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📥 文件上传注入 (Less-70 ~ Less-71)</h2>
+            <div class="nav-links">
+                <a href="/less/less-70" class="category-upload">Less-70: Upload XLS Injection</a>
+                <a href="/less/less-71" class="category-upload">Less-71: Upload XLSX Injection</a>
             </div>
         </div>
 

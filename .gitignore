@@ -33,6 +33,8 @@ tmp/*
 *.gif
 *.bmp
 *.svg
+# 但保留仓库中的网页横幅资源(SVG 随代码入库)
+!src/web/assets/*.svg
 screenshots/
 screencaps/
 

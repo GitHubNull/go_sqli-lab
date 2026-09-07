@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200" width="1200" height="200" preserveAspectRatio="xMidYMid slice" role="img" aria-labelledby="header-title header-desc">
+  <title id="header-title">Go SQLi Lab 头部装饰背景</title>
+  <desc id="header-desc">深色科技风格头部背景，包含抽象代码行、锁形轮廓、数据库圆柱和网络节点，与 #1a1a2e 深色主题协调。</desc>
+  
+  <defs>
+    <!-- 背景渐变：与 common.css 一致 -->
+    <linearGradient id="headerBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    
+    <!-- 顶部微光 -->
+    <linearGradient id="topGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4ecdc4" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#4ecdc4" stop-opacity="0"/>
+    </linearGradient>
+    
+    <!-- 网格 -->
+    <pattern id="headerGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#4ecdc4" stroke-width="0.2" stroke-opacity="0.08"/>
+    </pattern>
+    
+    <!-- 光晕滤镜 -->
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景层 -->
+  <rect width="100%" height="100%" fill="url(#headerBg)"/>
+  <rect width="100%" height="100%" fill="url(#headerGrid)"/>
+  <rect width="100%" height="60" fill="url(#topGlow)"/>
+  
+  <!-- 左侧装饰：抽象代码行 -->
+  <g id="header-code" opacity="0.5">
+    <rect x="40" y="50" width="120" height="6" rx="1.5" fill="#4ecdc4" opacity="0.2"/>
+    <rect x="40" y="50" width="70" height="6" rx="1.5" fill="#4ecdc4" opacity="0.35"/>
+    
+    <rect x="40" y="68" width="160" height="6" rx="1.5" fill="#ff6b6b" opacity="0.15"/>
+    <rect x="40" y="68" width="50" height="6" rx="1.5" fill="#ff6b6b" opacity="0.3"/>
+    
+    <rect x="40" y="86" width="100" height="6" rx="1.5" fill="#667eea" opacity="0.2"/>
+    <rect x="40" y="86" width="60" height="6" rx="1.5" fill="#667eea" opacity="0.35"/>
+    
+    <rect x="40" y="104" width="140" height="6" rx="1.5" fill="#4ecdc4" opacity="0.12"/>
+    <rect x="40" y="104" width="45" height="6" rx="1.5" fill="#4ecdc4" opacity="0.25"/>
+    
+    <rect x="40" y="122" width="90" height="6" rx="1.5" fill="#a8edea" opacity="0.15"/>
+    <rect x="40" y="122" width="55" height="6" rx="1.5" fill="#a8edea" opacity="0.28"/>
+    
+    <rect x="40" y="140" width="110" height="6" rx="1.5" fill="#ff6b6b" opacity="0.1"/>
+    <rect x="40" y="140" width="40" height="6" rx="1.5" fill="#ff6b6b" opacity="0.2"/>
+  </g>
+  
+  <!-- 中央偏左：简约锁形轮廓 -->
+  <g id="header-lock" transform="translate(420, 45)" opacity="0.25">
+    <rect x="15" y="30" width="40" height="32" rx="5" fill="none" stroke="#4ecdc4" stroke-width="1"/>
+    <path d="M 25 30 L 25 20 A 10 10 0 0 1 45 20 L 45 30" fill="none" stroke="#4ecdc4" stroke-width="1"/>
+    <circle cx="35" cy="42" r="3" fill="#4ecdc4" opacity="0.3"/>
+    <rect x="33" y="42" width="4" height="8" rx="1" fill="#4ecdc4" opacity="0.3"/>
+    <!-- 微光点 -->
+    <circle cx="35" cy="10" r="1.5" fill="#ff6b6b" opacity="0.25"/>
+  </g>
+  
+  <!-- 中央偏右：数据库轮廓 -->
+  <g id="header-db" transform="translate(540, 50)" opacity="0.2">
+    <ellipse cx="30" cy="15" rx="28" ry="10" fill="none" stroke="#ff6b6b" stroke-width="1"/>
+    <ellipse cx="30" cy="35" rx="28" ry="10" fill="none" stroke="#ff6b6b" stroke-width="0.8" opacity="0.5"/>
+    <ellipse cx="30" cy="55" rx="28" ry="10" fill="none" stroke="#ff6b6b" stroke-width="0.8" opacity="0.35"/>
+    <line x1="2" y1="15" x2="2" y2="55" stroke="#ff6b6b" stroke-width="0.8" opacity="0.3"/>
+    <line x1="58" y1="15" x2="58" y2="55" stroke="#ff6b6b" stroke-width="0.8" opacity="0.3"/>
+    <circle cx="30" cy="15" r="2" fill="#ff6b6b" opacity="0.2"/>
+  </g>
+  
+  <!-- 右侧：网络节点群 -->
+  <g id="header-network" opacity="0.5">
+    <line x1="950" y1="60" x2="1010" y2="100" stroke="#4ecdc4" stroke-width="0.8" opacity="0.25"/>
+    <line x1="1010" y1="100" x2="1080" y2="70" stroke="#4ecdc4" stroke-width="0.8" opacity="0.25"/>
+    <line x1="1010" y1="100" x2="1060" y2="140" stroke="#ff6b6b" stroke-width="0.8" opacity="0.2"/>
+    <line x1="950" y1="60" x2="970" y2="130" stroke="#667eea" stroke-width="0.8" opacity="0.2"/>
+    <line x1="1080" y1="70" x2="1060" y2="140" stroke="#4ecdc4" stroke-width="0.8" opacity="0.2"/>
+    <line x1="970" y1="130" x2="1060" y2="140" stroke="#667eea" stroke-width="0.8" opacity="0.2"/>
+    
+    <circle cx="950" cy="60" r="4" fill="#4ecdc4" opacity="0.4"/>
+    <circle cx="1010" cy="100" r="5" fill="#ff6b6b" opacity="0.4"/>
+    <circle cx="1080" cy="70" r="3.5" fill="#667eea" opacity="0.4"/>
+    <circle cx="1060" cy="140" r="4" fill="#4ecdc4" opacity="0.35"/>
+    <circle cx="970" cy="130" r="3" fill="#a8edea" opacity="0.35"/>
+  </g>
+  
+  <!-- 底部装饰线 -->
+  <line x1="0" y1="185" x2="1200" y2="185" stroke="#4ecdc4" stroke-width="0.8" opacity="0.12"/>
+  <line x1="0" y1="190" x2="1200" y2="190" stroke="#ff6b6b" stroke-width="0.4" opacity="0.08"/>
+  
+  <!-- 顶部高光边缘 -->
+  <line x1="0" y1="0" x2="1200" y2="0" stroke="#4ecdc4" stroke-width="1" opacity="0.15"/>
+</svg>

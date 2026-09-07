@@ -95,6 +95,11 @@ h2 {
     color: #fff;
 }
 
+.nav-links a.category-upload {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    color: #333;
+}
+
 form {
     max-width: 400px;
     margin: 30px auto;
@@ -255,6 +260,32 @@ tr:nth-child(even) {
     form {
         padding: 20px;
     }
+}
+
+/* 头部横幅区域 */
+.header-banner {
+    position: relative;
+    margin: -30px -30px 30px -30px;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+}
+
+.header-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0;
+}
+
+.header-overlay {
+    position: relative;
+    z-index: 1;
+    padding: 30px;
+    background: linear-gradient(180deg, rgba(26, 26, 46, 0.5) 0%, rgba(26, 26, 46, 0.85) 100%);
 }
 
 .header-actions {
@@ -496,6 +527,14 @@ tr:nth-child(even) {
 }
 
 @media (max-width: 768px) {
+    .header-banner {
+        margin: -15px -15px 20px -15px;
+    }
+    
+    .header-overlay {
+        padding: 20px;
+    }
+    
     .header-actions {
         justify-content: center;
     }
