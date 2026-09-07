@@ -1,0 +1,18 @@
+# golangci-lint configuration (v2 schema)
+#
+# This project is a deliberately-vulnerable SQL injection lab.
+# The Go handlers intentionally mirror the original PHP SQLi-Labs teaching
+# code: many error returns are left unchecked on purpose and the "vulnerable"
+# patterns are the whole point of the lessons.  Therefore we keep the lint
+# pass lightweight and only enable real correctness checks (govet, ineffassign)
+# instead of the noisy errcheck / unused / style analyzers.
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - govet
+    - ineffassign
