@@ -14,7 +14,7 @@ echo "=============================================="
 # ---- 检测 Go ----
 if ! command -v go >/dev/null 2>&1; then
     echo "[错误] 未找到 Go 环境。" >&2
-    echo "请先安装 Go 1.21 或更高版本，并确保 go 命令已加入 PATH。" >&2
+    echo "请先安装 Go 1.25 或更高版本，并确保 go 命令已加入 PATH。" >&2
     echo "下载地址: https://go.dev/dl/" >&2
     exit 1
 fi

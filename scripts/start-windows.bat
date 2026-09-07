@@ -14,7 +14,7 @@ rem ---- check Go ----
 where go >nul 2>nul
 if errorlevel 1 (
     echo [ERROR] Go not found.
-    echo Please install Go 1.21+ and make sure go is in PATH.
+    echo Please install Go 1.25+ and make sure go is in PATH.
     echo Download: https://go.dev/dl/
     pause
     exit /b 1
